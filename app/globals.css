@@ -1024,18 +1024,18 @@ button {
   
   /* Carousel navigation buttons - smaller on mobile */
   .carousel-nav-btn {
-    width: 36px !important;
-    height: 36px !important;
+    width: 32px !important;
+    height: 32px !important;
   }
   .carousel-nav-icon {
-    width: 18px !important;
-    height: 18px !important;
+    width: 16px !important;
+    height: 16px !important;
   }
   
   /* Carousel badge - smaller on mobile */
   .carousel-badge {
-    padding: 5px 12px !important;
-    font-size: 11px !important;
+    padding: 4px 10px !important;
+    font-size: 10px !important;
   }
   
   /* Category card height */
@@ -1061,6 +1061,50 @@ button {
     grid-template-columns: 1fr !important;
     text-align: center !important;
     gap: 2rem !important;
+  }
+
+  /* ── Dashboard Mobile Fixes ── */
+  /* Stats row: 3 columns is too cramped → single column */
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-top: -10px !important;
+  }
+
+  /* Tabs: no minWidth, allow wrapping */
+  .dashboard-tab-bar {
+    gap: 4px !important;
+    padding: 4px !important;
+  }
+
+  /* Content grid cards: single column */
+  .dashboard-content-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── Profile Mobile Fixes ── */
+  /* Profile header: stack avatar and text */
+  .profile-header-inner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+
+  /* Profile details grid: single column */
+  .profile-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Quick actions: allow wrapping */
+  .profile-quick-actions {
+    flex-wrap: wrap !important;
+  }
+
+  /* Edit button: don't push to edge */
+  .profile-edit-btn-wrap {
+    position: static !important;
+    align-self: flex-start !important;
   }
 }
 
@@ -1107,17 +1151,24 @@ button {
   border: 4px solid rgba(255, 255, 255, 0.2);
 }
 
-@media (max-width: 767px) {
+@media (max-width: 479px) {
   .carousel-card {
-    width: 260px;
-    height: 380px;
+    width: 170px;
+    height: 260px;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .carousel-card {
+    width: 200px;
+    height: 300px;
   }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .carousel-card {
-    width: 300px;
-    height: 420px;
+    width: 260px;
+    height: 380px;
   }
 }
 

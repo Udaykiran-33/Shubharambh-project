@@ -88,6 +88,9 @@ export default function HomePage() {
     return `${formatNum(min)} - ${formatNum(max)}`;
   };
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 480;
+  const isTablet = typeof window !== 'undefined' && window.innerWidth >= 480 && window.innerWidth < 768;
+
   const getCardStyle = (index: number): React.CSSProperties => {
     const diff = index - currentCard;
     const absDiff = Math.abs(diff);
@@ -102,7 +105,9 @@ export default function HomePage() {
       };
     }
     
-    const translateX = diff * 160;
+    // Responsive translateX: smaller on mobile to prevent overflow
+    const translateOffset = isMobile ? 90 : isTablet ? 115 : 160;
+    const translateX = diff * translateOffset;
     const rotateY = diff * -12;
     const scale = absDiff === 0 ? 1.05 : 1 - absDiff * 0.1;
     const opacity = absDiff === 0 ? 1 : Math.max(0.6, 1 - absDiff * 0.15);
@@ -133,8 +138,8 @@ export default function HomePage() {
       {/* Hero Section */}
       <section style={{ 
         minHeight: '100vh', 
-        paddingTop: '120px', 
-        paddingBottom: '60px',
+        paddingTop: 'clamp(80px, 14vw, 120px)', 
+        paddingBottom: '40px',
         background: 'linear-gradient(180deg, var(--cream-100) 0%, var(--cream-50) 50%, white 100%)',
         position: 'relative',
         overflow: 'hidden'
@@ -189,13 +194,14 @@ export default function HomePage() {
           {/* 3D Card Carousel */}
           <div style={{ 
             position: 'relative', 
-            height: 'clamp(280px, 45vw, 450px)',
+            height: 'clamp(230px, 55vw, 450px)',
             perspective: '1500px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto',
-            maxWidth: '100%'
+            maxWidth: '100%',
+            overflow: 'hidden'
           }}>
             {/* Left Arrow */}
             <button

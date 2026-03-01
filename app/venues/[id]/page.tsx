@@ -9,7 +9,7 @@ import QuoteModal from '@/components/QuoteModal';
 import AppointmentModal from '@/components/AppointmentModal';
 import {
   MapPin, Star, Users, Check, FileText, Calendar,
-  ChevronRight, ArrowLeft, Heart, Share2, X,
+  ChevronRight, ArrowLeft, Heart, X,
   Shield, Clock, ChevronLeft, Sparkles, Grid3X3,
   Phone
 } from 'lucide-react';
@@ -197,9 +197,6 @@ export default function VenueDetailPage({ params }: { params: Promise<{ id: stri
                     style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', borderRadius: '12px', border: `2px solid ${isLiked ? '#ef4444' : 'rgba(107,124,71,0.25)'}`, background: isLiked ? '#fee2e2' : 'white', color: isLiked ? '#dc2626' : '#4a5a2e', fontWeight: 700, fontSize: '13px', cursor: 'pointer', transition: 'all 0.2s' }}
                   >
                     <Heart size={15} fill={isLiked ? '#dc2626' : 'none'} /> Save
-                  </button>
-                  <button style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '9px 18px', borderRadius: '12px', border: '2px solid rgba(107,124,71,0.25)', background: 'white', color: '#4a5a2e', fontWeight: 700, fontSize: '13px', cursor: 'pointer' }}>
-                    <Share2 size={15} /> Share
                   </button>
                 </div>
               </div>

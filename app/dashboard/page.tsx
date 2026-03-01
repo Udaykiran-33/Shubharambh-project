@@ -275,11 +275,11 @@ export default function DashboardPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream-50)' }}>
       {/* Header */}
-      <section style={{ paddingTop: '100px', paddingBottom: '32px', background: 'linear-gradient(135deg, var(--olive-700), var(--olive-800))' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+      <section style={{ paddingTop: '80px', paddingBottom: '32px', background: 'linear-gradient(135deg, var(--olive-700), var(--olive-800))' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white', marginBottom: '4px' }}>My Dashboard</h1>
+              <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 800, color: 'white', marginBottom: '4px' }}>My Dashboard</h1>
               <p style={{ color: 'var(--cream-200)', fontSize: '14px' }}>Welcome back, {session?.user?.name}</p>
             </div>
             {isVendor && (
@@ -310,9 +310,9 @@ export default function DashboardPage() {
       </section>
 
       {/* Stats & Tabs */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px' }}>
+      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px' }}>
         {/* Stats Row */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '-20px', marginBottom: '20px' }}>
+        <div className="dashboard-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginTop: '-20px', marginBottom: '20px' }}>
           <div style={{ background: 'white', borderRadius: '14px', padding: '16px 20px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'linear-gradient(135deg, var(--olive-500), var(--olive-600))', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <FileText size={20} style={{ color: 'white' }} />
@@ -343,25 +343,25 @@ export default function DashboardPage() {
         </div>
 
         {/* Tabs */}
-        <div style={{ background: 'white', borderRadius: '12px', padding: '6px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', marginBottom: '20px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+        <div className="dashboard-tab-bar" style={{ background: 'white', borderRadius: '12px', padding: '6px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', marginBottom: '20px', display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
           {isVendor ? (
             <>
-              <button onClick={() => setActiveTab('listings')} style={{ flex: 1, minWidth: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: activeTab === 'listings' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'listings' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
+              <button onClick={() => setActiveTab('listings')} style={{ flex: 1, minWidth: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', background: activeTab === 'listings' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'listings' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
                 <Package size={16} /> My Listings
                 {vendorListings.length > 0 && <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: activeTab === 'listings' ? 'rgba(255,255,255,0.2)' : 'var(--olive-100)' }}>{vendorListings.length}</span>}
               </button>
-              <button onClick={() => setActiveTab('requests')} style={{ flex: 1, minWidth: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: activeTab === 'requests' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'requests' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
+              <button onClick={() => setActiveTab('requests')} style={{ flex: 1, minWidth: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', background: activeTab === 'requests' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'requests' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
                 <FileText size={16} /> Incoming Requests
                 {(vendorQuoteRequests.length + vendorAppointments.filter(a => a.status === 'pending').length) > 0 && <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: activeTab === 'requests' ? 'rgba(255,255,255,0.2)' : 'var(--olive-100)' }}>{vendorQuoteRequests.length + vendorAppointments.filter((a: any) => a.status === 'pending').length}</span>}
               </button>
             </>
           ) : (
             <>
-              <button onClick={() => setActiveTab('quotes')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: activeTab === 'quotes' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'quotes' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
+              <button onClick={() => setActiveTab('quotes')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', background: activeTab === 'quotes' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'quotes' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
                 <FileText size={16} /> Quote Requests
                 {quoteRequests.length > 0 && <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: activeTab === 'quotes' ? 'rgba(255,255,255,0.2)' : 'var(--olive-100)' }}>{quoteRequests.length}</span>}
               </button>
-              <button onClick={() => setActiveTab('appointments')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '14px', background: activeTab === 'appointments' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'appointments' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
+              <button onClick={() => setActiveTab('appointments')} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '12px 8px', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: '13px', background: activeTab === 'appointments' ? 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' : 'transparent', color: activeTab === 'appointments' ? 'white' : 'var(--olive-600)', transition: 'all 0.2s' }}>
                 <Calendar size={16} /> Appointments
                 {appointments.length > 0 && <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '10px', background: activeTab === 'appointments' ? 'rgba(255,255,255,0.2)' : 'var(--olive-100)' }}>{appointments.length}</span>}
               </button>
@@ -371,7 +371,7 @@ export default function DashboardPage() {
       </section>
 
       {/* Content */}
-      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 24px 60px' }}>
+      <section style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px 60px' }}>
         {isVendor && activeTab === 'listings' ? (
           /* Vendor Listings */
           <div>
@@ -561,7 +561,7 @@ export default function DashboardPage() {
                 <button onClick={() => router.push('/venues')} style={{ background: 'var(--olive-600)', color: 'white', fontWeight: 600, padding: '12px 24px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontSize: '14px' }}>Browse Venues</button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
+              <div className="dashboard-content-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '16px' }}>
                 {quoteRequests.map((request: any) => (
                   <div key={request._id} style={{ background: 'white', borderRadius: '14px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', border: '2px solid var(--olive-200)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>

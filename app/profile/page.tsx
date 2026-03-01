@@ -80,17 +80,17 @@ export default function ProfilePage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--cream-50)' }}>
       {/* Clean Header */}
-      <div style={{ background: 'linear-gradient(135deg, var(--olive-700), var(--olive-800))', paddingTop: '100px', paddingBottom: '60px' }}>
-        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 24px' }}>
+      <div style={{ background: 'linear-gradient(135deg, var(--olive-700), var(--olive-800))', paddingTop: '80px', paddingBottom: '60px' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 16px' }}>
           <Link href="/dashboard" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: 'rgba(255,255,255,0.7)', textDecoration: 'none', marginBottom: '24px', fontSize: '14px' }}>
             <ArrowLeft size={16} /> Back to Dashboard
           </Link>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'white' }}>My Profile</h1>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, color: 'white' }}>My Profile</h1>
         </div>
       </div>
 
       {/* Main Content */}
-      <div style={{ maxWidth: '900px', margin: '-40px auto 0', padding: '0 24px 60px', position: 'relative', zIndex: 10 }}>
+      <div style={{ maxWidth: '900px', margin: '-40px auto 0', padding: '0 16px 60px', position: 'relative', zIndex: 10 }}>
         {/* Message */}
         {message.text && (
           <div style={{ padding: '14px 20px', borderRadius: '12px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px', background: message.type === 'error' ? '#fef2f2' : '#f0fdf4', color: message.type === 'error' ? '#dc2626' : '#16a34a', border: `1px solid ${message.type === 'error' ? '#fee2e2' : '#dcfce7'}` }}>
@@ -101,19 +101,19 @@ export default function ProfilePage() {
         {/* Profile Card */}
         <div style={{ background: 'white', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', overflow: 'hidden' }}>
           {/* Profile Header */}
-          <div style={{ padding: '32px', display: 'flex', alignItems: 'center', gap: '24px', borderBottom: '1px solid var(--cream-200)' }}>
-            <div style={{ width: '100px', height: '100px', borderRadius: '20px', background: 'linear-gradient(135deg, var(--olive-500), var(--olive-600))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', fontWeight: 800, color: 'white', boxShadow: '0 8px 20px rgba(107, 142, 35, 0.3)' }}>
+          <div className="profile-header-inner" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '16px', borderBottom: '1px solid var(--cream-200)', flexWrap: 'wrap' }}>
+            <div style={{ width: '80px', height: '80px', borderRadius: '16px', flexShrink: 0, background: 'linear-gradient(135deg, var(--olive-500), var(--olive-600))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: 800, color: 'white', boxShadow: '0 8px 20px rgba(107, 142, 35, 0.3)' }}>
               {profile?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
-            <div style={{ flex: 1 }}>
-              <h2 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--olive-800)', marginBottom: '4px' }}>{profile?.name || 'User'}</h2>
-              <p style={{ color: 'var(--olive-500)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail size={16} /> {profile?.email}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h2 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 800, color: 'var(--olive-800)', marginBottom: '4px', wordBreak: 'break-word' }}>{profile?.name || 'User'}</h2>
+              <p style={{ color: 'var(--olive-500)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', fontSize: '14px' }}>
+                <Mail size={14} /> {profile?.email}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="profile-edit-btn-wrap" style={{ flexShrink: 0 }}>
               {!editing && (
-                <button onClick={() => setEditing(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', background: 'var(--olive-100)', color: 'var(--olive-700)', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>
+                <button onClick={() => setEditing(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', borderRadius: '12px', background: 'var(--olive-100)', color: 'var(--olive-700)', fontWeight: 600, border: 'none', cursor: 'pointer', transition: 'all 0.2s', fontSize: '14px' }}>
                   <Edit2 size={16} /> Edit
                 </button>
               )}
@@ -121,8 +121,8 @@ export default function ProfilePage() {
           </div>
 
           {/* Profile Details */}
-          <div style={{ padding: '32px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
+          <div style={{ padding: '24px' }}>
+            <div className="profile-details-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' }}>
               {/* Name */}
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'var(--olive-500)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Full Name</label>
@@ -183,16 +183,16 @@ export default function ProfilePage() {
           </div>
 
           {/* Quick Actions */}
-          <div style={{ padding: '24px 32px', background: 'var(--cream-50)', borderTop: '1px solid var(--cream-200)' }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '10px', background: 'white', color: 'var(--olive-700)', fontWeight: 500, textDecoration: 'none', border: '1px solid var(--cream-200)', fontSize: '14px' }}>
-                <Settings size={16} /> Dashboard
+          <div style={{ padding: '20px 24px', background: 'var(--cream-50)', borderTop: '1px solid var(--cream-200)' }}>
+            <div className="profile-quick-actions" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <Link href="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '10px', background: 'white', color: 'var(--olive-700)', fontWeight: 500, textDecoration: 'none', border: '1px solid var(--cream-200)', fontSize: '14px' }}>
+                <Settings size={15} /> Dashboard
               </Link>
-              <Link href="/venues" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '10px', background: 'white', color: 'var(--olive-700)', fontWeight: 500, textDecoration: 'none', border: '1px solid var(--cream-200)', fontSize: '14px' }}>
-                <MapPin size={16} /> Browse Venues
+              <Link href="/venues" style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '10px', background: 'white', color: 'var(--olive-700)', fontWeight: 500, textDecoration: 'none', border: '1px solid var(--cream-200)', fontSize: '14px' }}>
+                <MapPin size={15} /> Browse Venues
               </Link>
-              <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 20px', borderRadius: '10px', background: '#fef2f2', color: '#dc2626', fontWeight: 600, border: '1px solid #fee2e2', cursor: 'pointer', marginLeft: 'auto', fontSize: '14px' }}>
-                <LogOut size={16} /> Sign Out
+              <button onClick={handleSignOut} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', borderRadius: '10px', background: '#fef2f2', color: '#dc2626', fontWeight: 600, border: '1px solid #fee2e2', cursor: 'pointer', marginLeft: 'auto', fontSize: '14px' }}>
+                <LogOut size={15} /> Sign Out
               </button>
             </div>
           </div>
