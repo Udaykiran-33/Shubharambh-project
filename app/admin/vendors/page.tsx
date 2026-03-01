@@ -119,7 +119,7 @@ export default function AdminVendorsPage() {
       }
     } catch (error) {
       console.error('Error rejecting vendor:', error);
-      alert('Error rejecting vendor. Check console for details.');
+      alert('Error rejecting vendor. Check console for details..');
     } finally {
       setActionLoading(null);
     }
