@@ -97,19 +97,29 @@ function EditVenueModal({ venue, onClose, onSave }: { venue: any; onClose: () =>
     setSaving(true);
     setUploadError('');
     try {
-      // Upload new images to Cloudinary via /api/upload
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dmyww4jcv';
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'shubharambh_unsigned';
+
+      // Upload new images directly to Cloudinary from browser
       const uploadedUrls: string[] = [];
       for (const base64 of newPreviews) {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: base64, folder: `shubharambh/${venue.category || 'venues'}` }),
-        });
-        const data = await res.json();
-        if (data.url) uploadedUrls.push(data.url);
-        else setUploadError('Some images failed to upload.');
+        try {
+          const fd = new FormData();
+          fd.append('file', base64);
+          fd.append('upload_preset', uploadPreset);
+          fd.append('folder', `shubharambh/${venue.category || 'venues'}`);
+          const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, { method: 'POST', body: fd });
+          const data = await res.json();
+          if (data.secure_url) {
+            uploadedUrls.push(data.secure_url);
+          } else {
+            setUploadError('One or more photos failed to upload.');
+          }
+        } catch {
+          setUploadError('Upload error — check your connection.');
+        }
       }
-      // Merge: keep existing images + new cloudinary URLs
+      // Merge existing + newly uploaded
       const finalImages = [...currentImages, ...uploadedUrls];
       await onSave({ ...form, amenities: [], images: finalImages.length > 0 ? finalImages : venue.images });
     } catch {
@@ -117,6 +127,7 @@ function EditVenueModal({ venue, onClose, onSave }: { venue: any; onClose: () =>
     }
     setSaving(false);
   }
+
 
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} onClick={onClose}>

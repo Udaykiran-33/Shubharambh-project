@@ -317,24 +317,38 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
 
       if (uploadedImages.length > 0) {
         setUploadingImages(true);
+
+        const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dmyww4jcv';
+        const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'shubharambh_unsigned';
+
         for (const base64Image of uploadedImages) {
           try {
-            const res = await fetch('/api/upload', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                image: base64Image,
-                folder: `shubharambh/${category}`,
-              }),
-            });
+            // Upload directly from browser to Cloudinary (no server needed)
+            const fd = new FormData();
+            fd.append('file', base64Image);
+            fd.append('upload_preset', uploadPreset);
+            fd.append('folder', `shubharambh/${category}`);
+
+            const res = await fetch(
+              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+              { method: 'POST', body: fd }
+            );
             const data = await res.json();
-            if (data.url) {
-              cloudinaryUrls.push(data.url);
+            if (data.secure_url) {
+              cloudinaryUrls.push(data.secure_url);
             } else {
-              console.warn('Image upload returned no URL:', data);
+              console.warn('Direct Cloudinary upload failed:', data);
+              // Fallback: try server-side route
+              const serverRes = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Image, folder: `shubharambh/${category}` }),
+              });
+              const serverData = await serverRes.json();
+              if (serverData.url) cloudinaryUrls.push(serverData.url);
             }
           } catch (imgErr) {
-            console.error('Single image upload failed:', imgErr);
+            console.error('Image upload failed:', imgErr);
           }
         }
         setUploadingImages(false);
@@ -342,7 +356,7 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
 
       // If vendor selected images but NONE uploaded successfully — block submission
       if (uploadedImages.length > 0 && cloudinaryUrls.length === 0) {
-        setError('Image upload failed. Please check your internet connection or try smaller images, then try again.');
+        setError('Image upload failed. Please ensure Cloudinary is configured or try a smaller image.');
         setLoading(false);
         return;
       }
