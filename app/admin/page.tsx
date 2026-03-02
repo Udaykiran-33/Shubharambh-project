@@ -67,7 +67,7 @@ export default function AdminDashboard() {
   const hasPending = (stats?.pendingVenues || 0) > 0 || (stats?.pendingVendors || 0) > 0;
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '0 12px' }}>
 
       {/* ── Top Header ── */}
       <div style={{
@@ -142,7 +142,7 @@ export default function AdminDashboard() {
           <Building2 size={16} color="var(--olive-600)" />
           <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Venues</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+        <div className="admin-stat-grid">
           {[
             { label: 'Total', value: stats?.totalVenues || 0, href: '/admin/venues', accent: 'var(--olive-600)', light: 'var(--olive-100)' },
             { label: 'Pending', value: stats?.pendingVenues || 0, href: '/admin/venues?filter=pending', accent: '#d97706', light: '#fef3c7' },
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ── Vendors & Categories ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+      <div className="admin-two-col" style={{ gap: '20px', marginBottom: '24px' }}>
 
         {/* Vendors */}
         <div>
@@ -278,7 +278,7 @@ export default function AdminDashboard() {
           <CheckCircle size={16} color="var(--olive-600)" />
           <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quick Actions</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+        <div className="admin-action-grid">
           {[
             { label: 'Manage Venues', href: '/admin/venues', icon: Building2, primary: true },
             { label: 'View Vendors', href: '/admin/vendors', icon: Users, primary: false },
@@ -321,6 +321,25 @@ export default function AdminDashboard() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        .admin-stat-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        .admin-two-col {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+        .admin-action-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 10px;
+        }
+        @media (min-width: 600px) {
+          .admin-stat-grid { grid-template-columns: repeat(4, 1fr); }
+          .admin-two-col { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+          .admin-action-grid { grid-template-columns: repeat(4, 1fr); }
+        }
       `}</style>
     </div>
   );

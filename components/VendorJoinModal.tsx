@@ -437,11 +437,11 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
       >
         {/* Header */}
         <div 
-          className="sticky top-0 px-4 md:px-8 py-4 md:py-6 rounded-t-3xl md:rounded-t-3xl flex items-center justify-between z-10"
+          className="sticky top-0 px-4 md:px-8 py-4 md:py-6 rounded-t-3xl flex items-center justify-between z-10"
           style={{ background: 'linear-gradient(135deg, var(--olive-600), var(--olive-700))' }}
         >
           <div>
-            <h2 className="text-2xl font-bold text-white">
+            <h2 className="text-xl font-bold text-white">
               {mode === 'add-listing' ? 'Add New Listing' : 'Join as Vendor'}
             </h2>
             <p className="text-sm mt-1" style={{ color: 'var(--cream-200)' }}>Step {step} of 2</p>
@@ -454,8 +454,9 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
           </button>
         </div>
 
+
         {/* Progress Bar */}
-        <div className="px-8 py-4" style={{ background: 'var(--cream-50)' }}>
+        <div className="px-4 md:px-8 py-4" style={{ background: 'var(--cream-50)' }}>
           <div className="flex items-center gap-4">
             <div className="flex-1">
               <div className="h-2 rounded-full overflow-hidden" style={{ background: 'var(--cream-200)' }}>
@@ -475,7 +476,7 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
         </div>
 
         {/* Content */}
-        <div className="px-8 py-6">
+        <div className="px-4 md:px-8 py-5">
           {error && (
             <div 
               className="p-4 rounded-xl mb-6 text-sm border"
@@ -517,7 +518,7 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
                         }}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="vendor-form-grid">
                       <div>
                         <label className="block text-sm font-medium mb-2" style={{ color: 'var(--olive-700)' }}>
                           Email Address *
@@ -615,7 +616,7 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="vendor-form-grid">
                     <div>
                       <label className="block text-sm font-medium mb-2" style={{ color: 'var(--olive-700)' }}>
                         City *
@@ -848,3 +849,29 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
     </div>
   );
 }
+
+/* ── Responsive form grid ── */
+const vendorFormGridStyle = `
+  .vendor-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  @media (min-width: 480px) {
+    .vendor-form-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+  }
+`;
+
+if (typeof document !== 'undefined') {
+  const id = 'vendor-form-grid-style';
+  if (!document.getElementById(id)) {
+    const el = document.createElement('style');
+    el.id = id;
+    el.textContent = vendorFormGridStyle;
+    document.head.appendChild(el);
+  }
+}
+
