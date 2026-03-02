@@ -13,7 +13,7 @@ const team = [
   { name: 'Somesh',     role: 'Founder & CEO',  img: 'https://res.cloudinary.com/dmyww4jcv/image/upload/v1770618934/Gemini_Generated_Image_154sqv154sqv154s_fjdyyo.png' },
   { name: 'Raghav',     role: 'UI/UX Designer', img: 'https://res.cloudinary.com/dmyww4jcv/image/upload/v1770618523/Gemini_Generated_Image_pdd5k3pdd5k3pdd5_aow26z.png' },
   { name: 'Harsh',      role: 'Marketing Lead', img: 'https://res.cloudinary.com/dmyww4jcv/image/upload/v1770618965/Gemini_Generated_Image_bt0kkmbt0kkmbt0k_ebsh20.png' },
-  { name: 'Uday Kiran', role: 'Tech Lead',       img: 'https://res.cloudinary.com/dmyww4jcv/image/upload/v1771581900/Gemini_Generated_Image_lzcze1lzcze1lzcz_nfu0h8.jpg' },
+  { name: 'Uday Kiran', role: 'Tech Lead',       img: 'https://res.cloudinary.com/dmyww4jcv/image/upload/v1772437842/Gemini_Generated_Image_lzcze1lzcze1lzcz_nji7eh.jpg' },
 ];
 
 const testimonials = [
