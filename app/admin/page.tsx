@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { 
-  Building2, 
-  Users, 
-  FolderOpen, 
-  Clock, 
-  CheckCircle, 
+import {
+  Building2,
+  Users,
+  FolderOpen,
+  Clock,
+  CheckCircle,
   XCircle,
-  ArrowUpRight,
-  TrendingUp,
-  AlertCircle
+  AlertCircle,
+  ArrowRight,
+  LayoutGrid,
+  Activity,
 } from 'lucide-react';
 import { getAdminStats } from '@/app/actions/admin';
 
@@ -45,12 +46,15 @@ export default function AdminDashboard() {
     loadStats();
   }, []);
 
+  const today = new Date().toLocaleDateString('en-IN', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', padding: '80px' }}>
         <div style={{
-          width: '40px',
-          height: '40px',
+          width: '36px', height: '36px',
           border: '3px solid var(--cream-200)',
           borderTopColor: 'var(--olive-600)',
           borderRadius: '50%',
@@ -60,366 +64,264 @@ export default function AdminDashboard() {
     );
   }
 
-  const statCards = [
-    {
-      title: 'Total Venues',
-      value: stats?.totalVenues || 0,
-      icon: Building2,
-      color: 'var(--olive-600)',
-      bg: 'var(--olive-100)',
-      href: '/admin/venues',
-    },
-    {
-      title: 'Pending Approval',
-      value: stats?.pendingVenues || 0,
-      icon: Clock,
-      color: '#f59e0b',
-      bg: '#fef3c7',
-      href: '/admin/venues?filter=pending',
-      urgent: (stats?.pendingVenues || 0) > 0,
-    },
-    {
-      title: 'Approved',
-      value: stats?.approvedVenues || 0,
-      icon: CheckCircle,
-      color: '#10b981',
-      bg: '#d1fae5',
-      href: '/admin/venues?filter=approved',
-    },
-    {
-      title: 'Rejected',
-      value: stats?.rejectedVenues || 0,
-      icon: XCircle,
-      color: '#ef4444',
-      bg: '#fee2e2',
-      href: '/admin/venues?filter=rejected',
-    },
-    {
-      title: 'Total Vendors',
-      value: stats?.totalVendors || 0,
-      icon: Users,
-      color: '#6366f1',
-      bg: '#e0e7ff',
-      href: '/admin/vendors',
-    },
-    {
-      title: 'Pending Vendors',
-      value: stats?.pendingVendors || 0,
-      icon: Clock,
-      color: '#f59e0b',
-      bg: '#fef3c7',
-      href: '/admin/vendors?status=pending',
-      urgent: (stats?.pendingVendors || 0) > 0,
-    },
-    {
-      title: 'Categories',
-      value: stats?.totalCategories || 0,
-      icon: FolderOpen,
-      color: '#8b5cf6',
-      bg: '#ede9fe',
-      href: '/admin/categories',
-    },
-  ];
+  const hasPending = (stats?.pendingVenues || 0) > 0 || (stats?.pendingVendors || 0) > 0;
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ marginBottom: '32px' }}>
-        <h1 style={{ 
-          fontSize: 'clamp(1.5rem, 3vw, 2rem)', 
-          fontWeight: 800, 
-          color: 'var(--olive-800)',
-          marginBottom: '8px',
-        }}>
-          Dashboard
-        </h1>
-        <p style={{ color: 'var(--olive-500)' }}>
-          Welcome back! Here{`'`}s an overview of your platform.
-        </p>
+    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+
+      {/* ── Top Header ── */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--olive-700), var(--olive-800))',
+        borderRadius: '20px',
+        padding: '28px 32px',
+        marginBottom: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '16px',
+      }}>
+        <div>
+          <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{today}</p>
+          <h1 style={{ fontSize: 'clamp(1.5rem, 3vw, 2rem)', fontWeight: 800, color: 'white', margin: 0 }}>Admin Dashboard</h1>
+          <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '14px', marginTop: '4px' }}>Platform overview at a glance</p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.1)', padding: '10px 18px', borderRadius: '12px' }}>
+          <Activity size={16} color="rgba(255,255,255,0.8)" />
+          <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: '13px', fontWeight: 600 }}>
+            {(stats?.recentSubmissions || 0)} new this week
+          </span>
+        </div>
       </div>
 
-      {/* Alert for Pending Items */}
-      {((stats?.pendingVenues || 0) > 0 || (stats?.pendingVendors || 0) > 0) && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+      {/* ── Alerts ── */}
+      {hasPending && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '24px' }}>
           {(stats?.pendingVenues || 0) > 0 && (
             <div style={{
-              padding: '16px 20px',
-              borderRadius: '12px',
-              background: '#fef3c7',
-              border: '1px solid #fde68a',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              flexWrap: 'wrap',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '14px 20px', borderRadius: '12px',
+              background: '#fffbeb', border: '1px solid #fde68a',
             }}>
-              <AlertCircle size={20} color="#f59e0b" />
-              <span style={{ color: '#92400e', fontWeight: 500, flex: 1 }}>
-                {stats?.pendingVenues} venue(s) waiting for approval
+              <AlertCircle size={18} color="#d97706" />
+              <span style={{ flex: 1, fontSize: '14px', color: '#78350f', fontWeight: 500 }}>
+                <strong>{stats?.pendingVenues}</strong> venue{(stats?.pendingVenues || 0) > 1 ? 's' : ''} awaiting approval
               </span>
-              <Link 
-                href="/admin/venues?filter=pending"
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  background: '#f59e0b',
-                  color: 'white',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                }}
-              >
-                Review
+              <Link href="/admin/venues?filter=pending" style={{
+                fontSize: '13px', fontWeight: 700, color: '#d97706',
+                textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px'
+              }}>
+                Review <ArrowRight size={14} />
               </Link>
             </div>
           )}
           {(stats?.pendingVendors || 0) > 0 && (
             <div style={{
-              padding: '16px 20px',
-              borderRadius: '12px',
-              background: '#dbeafe',
-              border: '1px solid #93c5fd',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              flexWrap: 'wrap',
+              display: 'flex', alignItems: 'center', gap: '12px',
+              padding: '14px 20px', borderRadius: '12px',
+              background: '#eff6ff', border: '1px solid #bfdbfe',
             }}>
-              <Users size={20} color="#3b82f6" />
-              <span style={{ color: '#1e40af', fontWeight: 500, flex: 1 }}>
-                {stats?.pendingVendors} vendor(s) waiting for verification
+              <Users size={18} color="#3b82f6" />
+              <span style={{ flex: 1, fontSize: '14px', color: '#1e40af', fontWeight: 500 }}>
+                <strong>{stats?.pendingVendors}</strong> vendor{(stats?.pendingVendors || 0) > 1 ? 's' : ''} waiting for verification
               </span>
-              <Link 
-                href="/admin/vendors?status=pending"
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: '8px',
-                  background: '#3b82f6',
-                  color: 'white',
-                  textDecoration: 'none',
-                  fontWeight: 600,
-                  fontSize: '14px',
-                }}
-              >
-                Verify
+              <Link href="/admin/vendors?status=pending" style={{
+                fontSize: '13px', fontWeight: 700, color: '#3b82f6',
+                textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px'
+              }}>
+                Verify <ArrowRight size={14} />
               </Link>
             </div>
           )}
         </div>
       )}
 
-      {/* Stats Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-        gap: '20px',
-        marginBottom: '32px',
-      }}>
-        {statCards.map((card, index) => {
-          const Icon = card.icon;
-          return (
-            <Link
-              key={index}
-              href={card.href}
-              style={{
-                padding: '24px',
-                borderRadius: '16px',
+      {/* ── Venues Section ── */}
+      <div style={{ marginBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <Building2 size={16} color="var(--olive-600)" />
+          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Venues</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '12px' }}>
+          {[
+            { label: 'Total', value: stats?.totalVenues || 0, href: '/admin/venues', accent: 'var(--olive-600)', light: 'var(--olive-100)' },
+            { label: 'Pending', value: stats?.pendingVenues || 0, href: '/admin/venues?filter=pending', accent: '#d97706', light: '#fef3c7' },
+            { label: 'Approved', value: stats?.approvedVenues || 0, href: '/admin/venues?filter=approved', accent: '#059669', light: '#d1fae5' },
+            { label: 'Rejected', value: stats?.rejectedVenues || 0, href: '/admin/venues?filter=rejected', accent: '#dc2626', light: '#fee2e2' },
+          ].map((item) => (
+            <Link key={item.label} href={item.href} style={{ textDecoration: 'none' }}>
+              <div style={{
                 background: 'white',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                borderRadius: '14px',
+                padding: '20px',
                 border: '1px solid var(--cream-200)',
-                textDecoration: 'none',
-                transition: 'all 0.2s ease',
-                position: 'relative',
-                overflow: 'hidden',
+                transition: 'box-shadow 0.2s, transform 0.2s',
               }}
-            >
-              <div style={{
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                marginBottom: '16px',
-              }}>
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = '0 6px 24px rgba(0,0,0,0.08)';
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLElement).style.boxShadow = 'none';
+                  (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
+                }}
+              >
                 <div style={{
-                  width: '48px',
-                  height: '48px',
-                  borderRadius: '12px',
-                  background: card.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  width: '36px', height: '36px', borderRadius: '10px',
+                  background: item.light,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  marginBottom: '14px',
                 }}>
-                  <Icon size={24} color={card.color} />
+                  <Building2 size={17} color={item.accent} />
                 </div>
-                <ArrowUpRight size={16} color="var(--olive-400)" />
+                <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--olive-900)', lineHeight: 1 }}>{item.value}</div>
+                <div style={{ fontSize: '13px', color: 'var(--olive-500)', marginTop: '4px', fontWeight: 500 }}>{item.label}</div>
               </div>
-              <div style={{
-                fontSize: 'clamp(1.5rem, 3vw, 2rem)',
-                fontWeight: 800,
-                color: 'var(--olive-800)',
-                marginBottom: '4px',
-              }}>
-                {card.value}
-              </div>
-              <div style={{
-                fontSize: '14px',
-                color: 'var(--olive-500)',
-                fontWeight: 500,
-              }}>
-                {card.title}
-              </div>
-              {card.urgent && (
-                <div style={{
-                  position: 'absolute',
-                  top: '12px',
-                  right: '12px',
-                  width: '8px',
-                  height: '8px',
-                  borderRadius: '50%',
-                  background: '#f59e0b',
-                  animation: 'pulse 2s infinite',
-                }} />
-              )}
             </Link>
-          );
-        })}
-      </div>
-
-      {/* Quick Actions */}
-      <div style={{
-        background: 'white',
-        borderRadius: '16px',
-        padding: '24px',
-        border: '1px solid var(--cream-200)',
-      }}>
-        <h2 style={{
-          fontSize: '1.125rem',
-          fontWeight: 700,
-          color: 'var(--olive-800)',
-          marginBottom: '20px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-        }}>
-          <TrendingUp size={20} />
-          Quick Actions
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-          gap: '12px',
-        }}>
-          <Link
-            href="/admin/venues"
-            style={{
-              padding: '16px',
-              borderRadius: '12px',
-              background: 'var(--olive-50)',
-              border: '1px solid var(--olive-200)',
-              textDecoration: 'none',
-              textAlign: 'center',
-              fontWeight: 600,
-              color: 'var(--olive-700)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Manage Venues
-          </Link>
-          <Link
-            href="/admin/vendors"
-            style={{
-              padding: '16px',
-              borderRadius: '12px',
-              background: 'var(--cream-100)',
-              border: '1px solid var(--cream-200)',
-              textDecoration: 'none',
-              textAlign: 'center',
-              fontWeight: 600,
-              color: 'var(--olive-700)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            View Vendors
-          </Link>
-          <Link
-            href="/admin/categories"
-            style={{
-              padding: '16px',
-              borderRadius: '12px',
-              background: 'var(--cream-100)',
-              border: '1px solid var(--cream-200)',
-              textDecoration: 'none',
-              textAlign: 'center',
-              fontWeight: 600,
-              color: 'var(--olive-700)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            Edit Categories
-          </Link>
-          <Link
-            href="/"
-            style={{
-              padding: '16px',
-              borderRadius: '12px',
-              background: 'var(--cream-100)',
-              border: '1px solid var(--cream-200)',
-              textDecoration: 'none',
-              textAlign: 'center',
-              fontWeight: 600,
-              color: 'var(--olive-700)',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            View Website
-          </Link>
+          ))}
         </div>
       </div>
 
-      {/* Recent Activity would go here */}
-      <div style={{
-        marginTop: '24px',
-        padding: '24px',
-        borderRadius: '16px',
-        background: 'white',
-        border: '1px solid var(--cream-200)',
-      }}>
-        <h2 style={{
-          fontSize: '1.125rem',
-          fontWeight: 700,
-          color: 'var(--olive-800)',
-          marginBottom: '12px',
-        }}>
-          Summary
-        </h2>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-          gap: '16px',
-        }}>
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--olive-600)' }}>
-              {stats?.recentSubmissions || 0}
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--olive-500)' }}>
-              New this week
-            </div>
+      {/* ── Vendors & Categories ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '24px' }}>
+
+        {/* Vendors */}
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+            <Users size={16} color="var(--olive-600)" />
+            <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Vendors</span>
           </div>
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: '#10b981' }}>
-              {stats?.approvedVendors || 0}
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--olive-500)' }}>
-              Approved Vendors
-            </div>
+          <div style={{ background: 'white', borderRadius: '14px', border: '1px solid var(--cream-200)', overflow: 'hidden' }}>
+            {[
+              { label: 'Total Vendors', value: stats?.totalVendors || 0, href: '/admin/vendors', color: 'var(--olive-600)' },
+              { label: 'Pending Verification', value: stats?.pendingVendors || 0, href: '/admin/vendors?status=pending', color: '#d97706' },
+              { label: 'Approved Vendors', value: stats?.approvedVendors || 0, href: '/admin/vendors?status=approved', color: '#059669' },
+            ].map((row, i, arr) => (
+              <Link key={row.label} href={row.href} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  padding: '16px 20px',
+                  borderBottom: i < arr.length - 1 ? '1px solid var(--cream-200)' : 'none',
+                  transition: 'background 0.15s',
+                }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'var(--cream-50)'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'transparent'}
+                >
+                  <span style={{ fontSize: '14px', color: 'var(--olive-700)', fontWeight: 500 }}>{row.label}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '1.1rem', fontWeight: 800, color: row.color }}>{row.value}</span>
+                    <ArrowRight size={14} color="var(--olive-400)" />
+                  </div>
+                </div>
+              </Link>
+            ))}
           </div>
-          <div style={{ textAlign: 'center', padding: '16px' }}>
-            <div style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--olive-700)' }}>
-              {stats?.totalCategories || 0}
+        </div>
+
+        {/* Categories + Week summary */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Categories */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+              <FolderOpen size={16} color="var(--olive-600)" />
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Categories</span>
             </div>
-            <div style={{ fontSize: '13px', color: 'var(--olive-500)' }}>
-              Categories
+            <Link href="/admin/categories" style={{ textDecoration: 'none' }}>
+              <div style={{
+                background: 'white', borderRadius: '14px',
+                border: '1px solid var(--cream-200)', padding: '20px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                transition: 'box-shadow 0.2s',
+              }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 16px rgba(0,0,0,0.07)'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.boxShadow = 'none'}
+              >
+                <div>
+                  <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--olive-900)' }}>{stats?.totalCategories || 0}</div>
+                  <div style={{ fontSize: '13px', color: 'var(--olive-500)', marginTop: '2px' }}>Active Categories</div>
+                </div>
+                <div style={{
+                  width: '44px', height: '44px', borderRadius: '12px',
+                  background: 'var(--olive-100)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <FolderOpen size={20} color="var(--olive-600)" />
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          {/* This Week */}
+          <div style={{
+            background: 'linear-gradient(135deg, var(--olive-600), var(--olive-700))',
+            borderRadius: '14px', padding: '20px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          }}>
+            <div>
+              <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'white' }}>{stats?.recentSubmissions || 0}</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', marginTop: '2px' }}>Submissions this week</div>
+            </div>
+            <div style={{
+              width: '44px', height: '44px', borderRadius: '12px',
+              background: 'rgba(255,255,255,0.15)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <LayoutGrid size={20} color="white" />
             </div>
           </div>
         </div>
       </div>
+
+      {/* ── Quick Actions ── */}
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+          <CheckCircle size={16} color="var(--olive-600)" />
+          <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Quick Actions</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+          {[
+            { label: 'Manage Venues', href: '/admin/venues', icon: Building2, primary: true },
+            { label: 'View Vendors', href: '/admin/vendors', icon: Users, primary: false },
+            { label: 'Edit Categories', href: '/admin/categories', icon: FolderOpen, primary: false },
+            { label: 'View Website', href: '/', icon: ArrowRight, primary: false },
+          ].map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link key={action.label} href={action.href} style={{ textDecoration: 'none' }}>
+                <div style={{
+                  padding: '14px 18px',
+                  borderRadius: '12px',
+                  background: action.primary ? 'var(--olive-600)' : 'white',
+                  border: action.primary ? 'none' : '1px solid var(--cream-200)',
+                  display: 'flex', alignItems: 'center', gap: '10px',
+                  fontWeight: 600, fontSize: '14px',
+                  color: action.primary ? 'white' : 'var(--olive-700)',
+                  transition: 'all 0.18s',
+                  cursor: 'pointer',
+                }}
+                  onMouseEnter={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = action.primary ? 'var(--olive-700)' : 'var(--cream-50)';
+                    el.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={e => {
+                    const el = e.currentTarget as HTMLElement;
+                    el.style.background = action.primary ? 'var(--olive-600)' : 'white';
+                    el.style.transform = 'translateY(0)';
+                  }}
+                >
+                  <Icon size={16} />
+                  {action.label}
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }

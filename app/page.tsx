@@ -200,8 +200,7 @@ export default function HomePage() {
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto',
-            maxWidth: '100%',
-            overflow: 'hidden'
+            maxWidth: '100%'
           }}>
             {/* Left Arrow */}
             <button
@@ -274,12 +273,12 @@ export default function HomePage() {
                   className="carousel-card"
                   style={{
                     position: 'absolute',
-                    borderRadius: '24px',
+                    borderRadius: '20px',
                     overflow: 'hidden',
-                    border: index === currentCard ? '4px solid rgba(107, 142, 35, 0.5)' : '3px solid rgba(255,255,255,0.4)',
+                    border: index === currentCard ? '3px solid rgba(107, 142, 35, 0.5)' : '2px solid rgba(255,255,255,0.4)',
                     boxShadow: index === currentCard 
-                      ? '0 25px 60px -12px rgba(0, 0, 0, 0.3)' 
-                      : '0 15px 35px -10px rgba(0, 0, 0, 0.2)',
+                      ? '0 20px 50px -10px rgba(0, 0, 0, 0.35)' 
+                      : '0 10px 30px -8px rgba(0, 0, 0, 0.25)',
                     cursor: 'pointer',
                     transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
                     background: '#f0f0f0',
@@ -312,13 +311,15 @@ export default function HomePage() {
                   {index === currentCard && (
                     <div className="carousel-badge" style={{
                       position: 'absolute',
-                      top: '12px',
+                      top: '10px',
                       left: '50%',
                       transform: 'translateX(-50%)',
+                      zIndex: 20,
                       borderRadius: '9999px',
                       background: 'linear-gradient(135deg, var(--olive-500), var(--olive-600))',
                       color: 'white',
                       fontWeight: 700,
+                      whiteSpace: 'nowrap',
                       boxShadow: '0 4px 15px rgba(107, 142, 35, 0.4)'
                     }}>
                       Featured
@@ -394,15 +395,16 @@ export default function HomePage() {
             </h2>                     
             <Link 
               href={`/venues?event=${eventCards[currentCard].id }`}
+              className="find-venues-btn"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '12px',
-                padding: '16px 32px',
+                gap: '10px',
+                padding: 'clamp(10px, 2.5vw, 16px) clamp(20px, 5vw, 32px)',
                 borderRadius: '12px',
                 background: 'linear-gradient(135deg, var(--olive-600), var(--olive-700))',
                 color: 'white',
-                fontSize: '16px',
+                fontSize: 'clamp(13px, 3.5vw, 16px)',
                 fontWeight: 700,
                 textDecoration: 'none',
                 boxShadow: '0 8px 25px rgba(107, 142, 35, 0.35)',
@@ -410,7 +412,7 @@ export default function HomePage() {
               }}
             >
               Find Venues
-              <ArrowRight size={20} />
+              <ArrowRight size={18} />
             </Link>
           </div>
         </div>

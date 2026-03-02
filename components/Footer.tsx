@@ -99,7 +99,7 @@ export default function Footer() {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-olive-800">
                   <MapPin size={18} className="text-olive-400" />
                 </div>
-                <span className="text-olive-300 text-sm">Hyderabad, India</span>
+                <span className="text-olive-300 text-sm">Mumbai, India</span>
               </li>
             </ul>
           </div>
@@ -108,7 +108,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 border-t border-olive-800">
           <p className="text-sm flex items-center gap-2 text-olive-400">
-            Made with <Heart size={14} className="text-red-400" /> © 2024 Shubharambh
+            Made with <Heart size={14} className="text-red-400" /> © 2026 Shubharambh
           </p>
           <div className="flex gap-6 text-sm text-olive-400">
             <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
