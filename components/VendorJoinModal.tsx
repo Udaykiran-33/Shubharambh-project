@@ -208,7 +208,8 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [step, setStep] = useState(1);
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]); // base64 previews
+  const [uploadingImages, setUploadingImages] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<Record<string, string | string[]>>({
@@ -241,29 +242,65 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
 
   const currentConfig = categoryConfig[formData.category as string] || categoryConfig.venues;
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress an image file to a max dimension of 1200px, JPEG quality 0.82
+  // → keeps each image well under 500KB so it fits within Vercel's body limit
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const src = ev.target?.result as string;
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 1200;
+          let { width, height } = img;
+          if (width > MAX || height > MAX) {
+            if (width > height) {
+              height = Math.round((height * MAX) / width);
+              width = MAX;
+            } else {
+              width = Math.round((width * MAX) / height);
+              height = MAX;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) return reject(new Error('Canvas not supported'));
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = reject;
+        img.src = src;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
+    for (const file of Array.from(files)) {
+      setUploadedImages(prev => {
+        if (prev.length >= 3) return prev; // cap at 3
+        return prev; // placeholder — we'll push after compression
+      });
+      try {
+        const compressed = await compressImage(file);
         setUploadedImages(prev => {
-          // Check if we already have 3 images
           if (prev.length >= 3) return prev;
-          // Add new image to the array
-          return [...prev, result];
+          return [...prev, compressed];
         });
-      };
-      reader.readAsDataURL(file);
-    });
-    
-    // Reset file input so the same file can be selected again if needed
-    if (e.target) {
-      e.target.value = '';
+      } catch {
+        // skip images that fail to compress
+      }
     }
+
+    if (e.target) e.target.value = '';
   };
+
 
   const removeImage = (index: number) => {
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
@@ -274,6 +311,43 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
     setError('');
 
     try {
+      // Step 1: Upload each image to Cloudinary via API route and collect URLs
+      const category = formData.category as string;
+      const cloudinaryUrls: string[] = [];
+
+      if (uploadedImages.length > 0) {
+        setUploadingImages(true);
+        for (const base64Image of uploadedImages) {
+          try {
+            const res = await fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image: base64Image,
+                folder: `shubharambh/${category}`,
+              }),
+            });
+            const data = await res.json();
+            if (data.url) {
+              cloudinaryUrls.push(data.url);
+            } else {
+              console.warn('Image upload returned no URL:', data);
+            }
+          } catch (imgErr) {
+            console.error('Single image upload failed:', imgErr);
+          }
+        }
+        setUploadingImages(false);
+      }
+
+      // If vendor selected images but NONE uploaded successfully — block submission
+      if (uploadedImages.length > 0 && cloudinaryUrls.length === 0) {
+        setError('Image upload failed. Please check your internet connection or try smaller images, then try again.');
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Build form data with Cloudinary URLs (not base64)
       const submitData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (Array.isArray(value)) {
@@ -286,13 +360,13 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
       // Rename businessName to venueName for backend compatibility
       submitData.set('venueName', formData.businessName as string);
 
-      // Send actual uploaded images as base64
-      uploadedImages.forEach((imageData, index) => {
-        submitData.append(`image_${index}`, imageData);
+      // Send Cloudinary URLs (plain strings, not base64)
+      cloudinaryUrls.forEach((url, index) => {
+        submitData.append(`image_${index}`, url);
       });
-      submitData.append('imageCount', uploadedImages.length.toString());
+      submitData.append('imageCount', cloudinaryUrls.length.toString());
 
-      // Choose action based on mode
+      // Step 3: Call the server action
       const result = mode === 'add-listing'
         ? await addVenueListing(submitData)
         : await registerVendorWithVenue(submitData);
@@ -743,7 +817,7 @@ export default function VendorJoinModal({ onClose, mode = 'register' }: VendorJo
                   {loading ? (
                     <>
                       <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Submitting...
+                      {uploadingImages ? 'Uploading photos...' : 'Submitting...'}
                     </>
                   ) : (
                     <>

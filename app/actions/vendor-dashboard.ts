@@ -318,8 +318,15 @@ export async function updateVenueListing(venueId: string, data: any) {
       return { error: 'Venue not found or unauthorized' };
     }
 
-    // Update venue
-    Object.assign(venue, data);
+    // Update venue fields
+    const allowedFields = ['name', 'description', 'address', 'city', 'location',
+      'priceRange', 'amenities', 'images', 'capacity', 'eventTypes'];
+    allowedFields.forEach(field => {
+      if (data[field] !== undefined) {
+        (venue as any)[field] = data[field];
+      }
+    });
+
     await venue.save();
 
     revalidatePath('/dashboard');

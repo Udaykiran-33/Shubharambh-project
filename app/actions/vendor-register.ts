@@ -54,20 +54,24 @@ export async function registerVendorWithVenue(formData: FormData) {
   const priceMax = parseInt(formData.get('priceMax') as string) || 200000;
   const eventTypes = (formData.get('eventTypes') as string)?.split(',') || ['wedding'];
   
-  // Get uploaded images as base64 strings
+  // Get uploaded images - can be either Cloudinary URLs (from /api/upload) or base64 (legacy)
   const uploadedImages: string[] = [];
   try {
     for (let i = 0; i < 3; i++) {
       const imageData = formData.get(`image_${i}`) as string;
-      if (imageData && imageData.startsWith('data:image')) {
-        // Upload to Cloudinary
+      if (!imageData) continue;
+
+      if (imageData.startsWith('https://')) {
+        // Already a Cloudinary URL — use directly
+        uploadedImages.push(imageData);
+      } else if (imageData.startsWith('data:image')) {
+        // Legacy base64 path — upload now
         const imageUrl = await uploadToCloudinary(imageData, `shubharambh/${category}`);
         uploadedImages.push(imageUrl);
       }
     }
   } catch (error) {
     console.error('Image upload failed:', error);
-    // Don't fail the whole registration if just images fail, but log it
   }
 
   // Get category-specific fields
@@ -425,7 +429,13 @@ export async function addVenueListing(formData: FormData) {
     try {
       for (let i = 0; i < 3; i++) {
         const imageData = formData.get(`image_${i}`) as string;
-        if (imageData && imageData.startsWith('data:image')) {
+        if (!imageData) continue;
+
+        if (imageData.startsWith('https://')) {
+          // Already a Cloudinary URL — use directly
+          uploadedImages.push(imageData);
+        } else if (imageData.startsWith('data:image')) {
+          // Legacy base64 path — upload now
           const imageUrl = await uploadToCloudinary(imageData, `shubharambh/${category}`);
           uploadedImages.push(imageUrl);
         }

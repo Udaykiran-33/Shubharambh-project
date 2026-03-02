@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { getUserQuoteRequests, getQuotesForRequest, acceptQuote } from '@/app/actions/quotes';
@@ -32,6 +32,7 @@ interface Quote {
   venueId?: { _id: string; name: string; images: string[]; location: string; rating: number };
 }
 
+
 interface Appointment {
   _id: string;
   type: 'appointment' | 'visit';
@@ -41,6 +42,164 @@ interface Appointment {
   status: string;
   venueId?: { _id: string; name: string; images: string[]; location: string };
 }
+
+// ─── Edit Venue Modal with Image Upload ────────────────────────────────────
+function EditVenueModal({ venue, onClose, onSave }: { venue: any; onClose: () => void; onSave: (data: any) => Promise<void> }) {
+  const [form, setForm] = useState({ name: venue.name || '', description: venue.description || '', city: venue.city || '', address: venue.address || '', location: venue.location || '' });
+  const [currentImages, setCurrentImages] = useState<string[]>(venue.images || []);
+  const [newPreviews, setNewPreviews] = useState<string[]>([]); // base64 previews for new images
+  const [saving, setSaving] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = e.target.files;
+    if (!files) return;
+
+    const compressFile = (file: File): Promise<string> =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const src = ev.target?.result as string;
+          const img = new Image();
+          img.onload = () => {
+            const MAX = 1200;
+            let { width, height } = img;
+            if (width > MAX || height > MAX) {
+              if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+              else { width = Math.round(width * MAX / height); height = MAX; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return reject(new Error('no canvas'));
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.82));
+          };
+          img.onerror = reject;
+          img.src = src;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+    for (const file of Array.from(files)) {
+      try {
+        const compressed = await compressFile(file);
+        setNewPreviews(prev => prev.length + currentImages.length >= 5 ? prev : [...prev, compressed]);
+      } catch { /* skip */ }
+    }
+    if (e.target) e.target.value = '';
+  }
+
+
+  async function handleSave() {
+    setSaving(true);
+    setUploadError('');
+    try {
+      // Upload new images to Cloudinary via /api/upload
+      const uploadedUrls: string[] = [];
+      for (const base64 of newPreviews) {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64, folder: `shubharambh/${venue.category || 'venues'}` }),
+        });
+        const data = await res.json();
+        if (data.url) uploadedUrls.push(data.url);
+        else setUploadError('Some images failed to upload.');
+      }
+      // Merge: keep existing images + new cloudinary URLs
+      const finalImages = [...currentImages, ...uploadedUrls];
+      await onSave({ ...form, amenities: [], images: finalImages.length > 0 ? finalImages : venue.images });
+    } catch {
+      setUploadError('Save failed. Please try again.');
+    }
+    setSaving(false);
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div style={{ background: 'white', borderRadius: '20px', padding: '28px', maxWidth: '600px', width: '100%', maxHeight: '92vh', overflowY: 'auto', boxShadow: '0 24px 60px rgba(0,0,0,0.3)' }} onClick={e => e.stopPropagation()}>
+        <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--olive-800)', marginBottom: '4px' }}>Edit Listing</h3>
+        <p style={{ fontSize: '13px', color: 'var(--olive-500)', marginBottom: '24px' }}>Update your listing details and photos</p>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* ── Photo Section ── */}
+          <div style={{ background: 'var(--cream-50)', borderRadius: '12px', padding: '16px', border: '1px solid var(--cream-200)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--olive-700)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Photos</span>
+              <span style={{ fontSize: '12px', color: 'var(--olive-400)' }}>{currentImages.length + newPreviews.length}/5</span>
+            </div>
+
+            {/* Current images */}
+            {currentImages.length > 0 && (
+              <div style={{ marginBottom: '12px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--olive-500)', marginBottom: '8px', fontWeight: 500 }}>Current photos (click × to remove):</p>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {currentImages.map((img, i) => (
+                    <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', border: '2px solid var(--cream-300)', flexShrink: 0 }}>
+                      <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button onClick={() => setCurrentImages(prev => prev.filter((_, j) => j !== i))} style={{ position: 'absolute', top: '2px', right: '2px', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(239,68,68,0.9)', border: 'none', color: 'white', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1 }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* New image previews */}
+            {newPreviews.length > 0 && (
+              <div style={{ marginBottom: '12px' }}>
+                <p style={{ fontSize: '12px', color: 'var(--olive-500)', marginBottom: '8px', fontWeight: 500 }}>New photos to upload:</p>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  {newPreviews.map((img, i) => (
+                    <div key={i} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '10px', overflow: 'hidden', border: '2px solid #10b981', flexShrink: 0 }}>
+                      <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button onClick={() => setNewPreviews(prev => prev.filter((_, j) => j !== i))} style={{ position: 'absolute', top: '2px', right: '2px', width: '20px', height: '20px', borderRadius: '50%', background: 'rgba(239,68,68,0.9)', border: 'none', color: 'white', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <input ref={fileRef} type="file" accept="image/*" multiple onChange={handleFileChange} style={{ display: 'none' }} />
+            <button onClick={() => fileRef.current?.click()} style={{ padding: '9px 16px', borderRadius: '8px', border: '2px dashed var(--olive-400)', background: 'white', color: 'var(--olive-600)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', width: '100%' }}>
+              + Add Photos
+            </button>
+            {uploadError && <p style={{ fontSize: '12px', color: '#dc2626', marginTop: '8px' }}>{uploadError}</p>}
+          </div>
+
+          {/* ── Text Fields ── */}
+          {[
+            { key: 'name', label: 'Listing Name', type: 'input' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'city', label: 'City', type: 'input' },
+            { key: 'location', label: 'Area / Locality', type: 'input' },
+            { key: 'address', label: 'Full Address', type: 'input' },
+          ].map(f => (
+            <div key={f.key}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>{f.label}</label>
+              {f.type === 'textarea'
+                ? <textarea value={(form as any)[f.key] || ''} onChange={e => setForm({ ...form, [f.key]: e.target.value })} rows={3} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px', resize: 'vertical', outline: 'none' }} />
+                : <input type="text" value={(form as any)[f.key] || ''} onChange={e => setForm({ ...form, [f.key]: e.target.value })} style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px', outline: 'none' }} />
+              }
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+          <button onClick={onClose} style={{ flex: 1, padding: '12px', border: '1px solid var(--cream-300)', borderRadius: '10px', background: 'white', color: 'var(--olive-600)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: '12px', border: 'none', borderRadius: '10px', background: saving ? 'var(--olive-400)' : 'var(--olive-600)', color: 'white', fontWeight: 700, fontSize: '14px', cursor: saving ? 'not-allowed' : 'pointer' }}>
+            {saving ? (newPreviews.length > 0 ? 'Uploading photos...' : 'Saving...') : 'Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
@@ -279,7 +438,7 @@ export default function DashboardPage() {
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
             <div>
-              <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 800, color: 'white', marginBottom: '4px' }}>My Dashboard</h1>
+              <h1 style={{ fontSize: 'clamp(1.25rem, 4vw, 1.75rem)', fontWeight: 800, color: 'white', marginBottom: '4px', marginTop: '30px' }}>My Dashboard</h1>
               <p style={{ color: 'var(--cream-200)', fontSize: '14px' }}>Welcome back, {session?.user?.name}</p>
             </div>
             {isVendor && (
@@ -710,117 +869,21 @@ export default function DashboardPage() {
 
       {/* Edit Venue Modal */}
       {showEditModal && editingVenue && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px', background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)' }} onClick={() => setShowEditModal(false)}>
-          <div style={{ background: 'white', borderRadius: '16px', padding: '24px', maxWidth: '600px', width: '100%', maxHeight: '90vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }} onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--olive-800)', marginBottom: '20px' }}>Edit Venue</h3>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Venue Name *</label>
-                <input
-                  type="text"
-                  value={editForm.name || ''}
-                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Description *</label>
-                <textarea
-                  value={editForm.description || ''}
-                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px', minHeight: '80px', resize: 'vertical' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>City *</label>
-                  <input
-                    type="text"
-                    value={editForm.city || ''}
-                    onChange={(e) => setEditForm({ ...editForm, city: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>State *</label>
-                  <input
-                    type="text"
-                    value={editForm.state || ''}
-                    onChange={(e) => setEditForm({ ...editForm, state: e.target.value })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Address *</label>
-                <input
-                  type="text"
-                  value={editForm.address || ''}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Capacity *</label>
-                  <input
-                    type="number"
-                    value={editForm.capacity || ''}
-                    onChange={(e) => setEditForm({ ...editForm, capacity: parseInt(e.target.value) })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Pricing *</label>
-                  <input
-                    type="number"
-                    value={editForm.pricing || ''}
-                    onChange={(e) => setEditForm({ ...editForm, pricing: parseInt(e.target.value) })}
-                    style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Amenities (comma-separated)</label>
-                <input
-                  type="text"
-                  value={editForm.amenities || ''}
-                  onChange={(e) => setEditForm({ ...editForm, amenities: e.target.value })}
-                  placeholder="e.g., Parking, AC, WiFi"
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: 'var(--olive-700)', marginBottom: '6px' }}>Type *</label>
-                <select
-                  value={editForm.type || ''}
-                  onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}
-                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '2px solid var(--cream-300)', fontSize: '14px' }}
-                >
-                  <option value="banquet">Banquet Hall</option>
-                  <option value="garden">Garden</option>
-                  <option value="resort">Resort</option>
-                  <option value="hotel">Hotel</option>
-                  <option value="farmhouse">Farmhouse</option>
-                  <option value="beach">Beach</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button onClick={() => { setShowEditModal(false); setEditingVenue(null); setEditForm({}); }} style={{ flex: 1, padding: '12px', border: '1px solid var(--cream-300)', borderRadius: '8px', background: 'white', color: 'var(--olive-600)', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Cancel</button>
-              <button onClick={handleSaveEdit} style={{ flex: 1, padding: '12px', border: 'none', borderRadius: '8px', background: 'var(--olive-600)', color: 'white', fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>Save Changes</button>
-            </div>
-          </div>
-        </div>
+        <EditVenueModal
+          venue={editingVenue}
+          onClose={() => { setShowEditModal(false); setEditingVenue(null); setEditForm({}); }}
+          onSave={async (updatedData: any) => {
+            const result = await updateVenueListing(editingVenue._id, updatedData);
+            if (result.success) {
+              setShowEditModal(false);
+              setEditingVenue(null);
+              setEditForm({});
+              loadData();
+            } else {
+              alert(result.error || 'Failed to update listing');
+            }
+          }}
+        />
       )}
 
       <style jsx>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
