@@ -243,33 +243,30 @@ export async function getApprovedVendorsByCategory(categorySlug: string, filters
   return JSON.parse(JSON.stringify(result));
 }
 
-// Get distinct city/location values from all approved venues & vendors
-// Optional `category` param to scope to a specific category slug
+// Get distinct city/location values from approved Venue docs only.
+// Scoped to a specific category slug when provided, so each section's
+// city filter only shows cities where that category actually has listings.
 export async function getDistinctLocations(category?: string): Promise<string[]> {
   await dbConnect();
 
-  // Query approved Venue docs for distinct city values
+  // Only pull from the Venue collection — it has a direct `category` field,
+  // so we can scope results precisely. Avoid merging Vendor.locations which
+  // is a flat array and cannot be reliably scoped to a single category,
+  // causing cross-category city bleed-through in filters.
   const venueQuery: Record<string, unknown> = { isAvailable: true, status: 'approved' };
   if (category) venueQuery.category = category;
 
   const venueCities: string[] = await Venue.distinct('city', venueQuery);
 
-  // Also pull distinct location values from Vendor docs
-  const vendorQuery: Record<string, unknown> = { isActive: true, status: 'approved' };
-  if (category) vendorQuery.categories = category;
-
-  const vendorLocations: string[] = await Vendor.distinct('locations', vendorQuery);
-
-  // Merge, deduplicate (case-insensitive), filter empties, sort
+  // Deduplicate (case-insensitive), filter empties, capitalise words, sort
   const seen = new Set<string>();
   const merged: string[] = [];
-  for (const loc of [...venueCities, ...vendorLocations]) {
+  for (const loc of venueCities) {
     const trimmed = (loc || '').trim();
     if (!trimmed) continue;
     const key = trimmed.toLowerCase();
     if (!seen.has(key)) {
       seen.add(key);
-      // Capitalize first letter of each word
       merged.push(trimmed.replace(/\b\w/g, c => c.toUpperCase()));
     }
   }
