@@ -1,9 +1,13 @@
 'use server';
 
-import mongoose from 'mongoose';
 import dbConnect from '@/lib/db';
 import Venue from '@/models/Venue';
 import Vendor from '@/models/Vendor';
+
+// Lightweight ObjectId format check (24 hex chars) — avoids importing mongoose at the top level
+function isValidObjectId(id: string): boolean {
+  return /^[a-f\d]{24}$/i.test(id);
+}
 
 // Get venues with optional filters
 export async function getVenues(filters: {
@@ -53,7 +57,7 @@ export async function getVenueById(id: string) {
   await dbConnect();
   
   // Validate ObjectId format
-  if (!mongoose.Types.ObjectId.isValid(id)) {
+  if (!isValidObjectId(id)) {
     return null;
   }
   
